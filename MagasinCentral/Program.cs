@@ -117,9 +117,8 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Migration de la base de donn�es
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<MagasinDbContext>();
     db.Database.Migrate();
 }
@@ -132,7 +131,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "MagasinCentral API v1"));
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -143,6 +142,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseSwagger();
 app.UseSwaggerUI();
+
 app.MapControllers();
 
 app.MapControllerRoute(

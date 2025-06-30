@@ -1,8 +1,5 @@
-version: '3.9'
-
 services:
 
-  # Base de données Postgres
   db:
     image: postgres:15
     container_name: magasincentral-db
@@ -15,13 +12,7 @@ services:
       - db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U magasinuser"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
 
-  # Application .NET Core
   app:
     build:
       context: .
@@ -29,14 +20,17 @@ services:
     image: magasincentral-api:latest
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
-      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=magasincentraldb;Username=magasinuser;Password=magasinpass"
+      ASPNETCORE_URLS: "http://+:80"
+      ConnectionStrings__DefaultConnection: "Host=magasincentral-db;Port=5432;Username=magasinuser;Password=magasinpass;Database=magasincentraldb"
+      JwtSettings__Issuer: "MagasinCentralAPI"
+      JwtSettings__Audience: "MagasinCentralClient"
+      JwtSettings__Secret: "MON_CLE_SECRETE_TRES_LONGUE_ET_COMPLEXE"
+      JwtSettings__TokenValidityInMinutes: "60"
+    depends_on:
+      - db
     ports:
-      - "8181:80"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost/healthz || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+      - "8080:80"
+    restart: unless-stopped
 
 volumes:
   db_data:
