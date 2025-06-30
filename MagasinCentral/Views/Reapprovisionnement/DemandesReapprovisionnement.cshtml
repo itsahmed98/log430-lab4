@@ -1,0 +1,48 @@
+@model List<DemandeReapprovisionnement>
+
+@{
+    ViewData["Title"] = "Demandes de réapprovisionnement";
+}
+
+<h1 class="mt-4">Demandes de réapprovisionnement</h1>
+
+<p>
+    <a asp-controller="Reapprovisionnement" asp-action="Index" class="btn btn-secondary btn-sm">
+        ← Retour à la consultation des stocks
+    </a>
+</p>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Aucune demande de réapprovisionnement n'a encore été enregistrée.
+    </div>
+}
+else
+{
+    <table class="table table-bordered table-striped table-sm">
+        <thead>
+            <tr>
+                <th>Demande ID</th>
+                <th>Magasin</th>
+                <th>Produit</th>
+                <th>Quantité demandée</th>
+                <th>Date de la demande</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var demande in Model)
+            {
+                <tr>
+                    <td>@demande.DemandeId</td>
+                    <td>@demande.Magasin?.Nom</td>
+                    <td>@demande.Produit?.Nom</td>
+                    <td>@demande.QuantiteDemandee</td>
+                    <td>@demande.DateDemande.ToString("g")</td>
+                    <td>@demande.Statut</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

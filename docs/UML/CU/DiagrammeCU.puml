@@ -1,0 +1,27 @@
+@startuml "Diagramme Cas d'Utilisation - Magasin Central"
+title Diagramme Cas d'Utilisation - Magasin Central
+left to right direction
+
+actor Employe as E
+actor Gestionnaire as G
+actor Responsable as R
+
+G -|> E
+R -|> E
+
+rectangle "Magasin Central" {
+    usecase UC1 as "UC1 - Générer rapport consolidé"
+    usecase UC2 as "UC2 - Consulter stock central\nDéclencher réapprovisionnement"
+    usecase UC3 as "UC3 - Visualiser performances\ndes magasins"
+    usecase UC4 as "UC4 - Modifier produit"
+    usecase UC6 as "UC6 - Approuver/refuser demande\nde réapprovisionnement"
+    usecase UC7 as "UC7 - Récupérer un produit"
+}
+
+G --> UC1
+E --> UC2
+G --> UC3
+R --> UC4
+R --> UC6
+R --> UC7
+@enduml

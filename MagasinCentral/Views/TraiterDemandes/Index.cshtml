@@ -1,0 +1,71 @@
+@model List<DemandeReapprovisionnement>
+
+@{
+    ViewData["Title"] = "Validation des demandes de réapprovisionnement";
+}
+
+<h1 class="mt-4">Demandes en attente</h1>
+
+@if (TempData["Succès"] != null)
+{
+    <div class="alert alert-success">@TempData["Succès"]</div>
+}
+@if (TempData["Erreur"] != null)
+{
+    <div class="alert alert-danger">@TempData["Erreur"]</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Il n'y a actuellement aucune demande en attente.
+    </div>
+}
+else
+{
+    <table class="table table-bordered table-striped table-sm">
+        <thead>
+            <tr>
+                <th>Demande ID</th>
+                <th>Magasin</th>
+                <th>Produit</th>
+                <th>Quantité demandée</th>
+                <th>Date de la demande</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in Model)
+            {
+                <tr>
+                    <td>@d.DemandeId</td>
+                    <td>@d.Magasin.Nom</td>
+                    <td>@d.Produit.Nom</td>
+                    <td>@d.QuantiteDemandee</td>
+                    <td>@d.DateDemande.ToString("g")</td>
+                    <td>
+                        @* Formulaire pour approuver *@
+                        <form asp-controller="TraiterDemandes" asp-action="Traiter" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="demandeId" value="@d.DemandeId" />
+                            <input type="hidden" name="approuver" value="true" />
+                            <button type="submit" class="btn btn-sm btn-success">
+                                Approuver
+                            </button>
+                        </form>
+
+                        @* Formulaire pour refuser *@
+                        <form asp-controller="TraiterDemandes" asp-action="Traiter" method="post" class="d-inline ml-1">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="demandeId" value="@d.DemandeId" />
+                            <input type="hidden" name="approuver" value="false" />
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                Refuser
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

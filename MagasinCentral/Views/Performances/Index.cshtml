@@ -1,0 +1,131 @@
+@model PerformancesViewModel
+
+@{
+    ViewData["Title"] = "Tableau de bord des performances";
+    DateTime aujourdHui = DateTime.UtcNow.Date;
+    DateTime semainePasse = aujourdHui.AddDays(-6);
+}
+
+<h1 class="mt-4">Tableau de bord des performances</h1>
+
+<hr />
+
+<h2>Chiffre d’affaires par magasin</h2>
+<table class="table table-bordered table-striped table-sm">
+    <thead>
+        <tr>
+            <th>Magasin</th>
+            <th>Chiffre d’affaires</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var revenu in Model.RevenusParMagasin)
+        {
+            <tr>
+                <td>@revenu.NomMagasin</td>
+                <td>@revenu.ChiffreAffaires.ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<hr />
+
+<h2>Alertes de rupture de stock</h2>
+@if (!Model.ProduitsRupture.Any())
+{
+    <div class="alert alert-success">
+        Aucun produit en rupture de stock local.
+    </div>
+}
+else
+{
+    <table class="table table-bordered table-sm">
+        <thead>
+            <tr>
+                <th>Magasin</th>
+                <th>Produit</th>
+                <th>Quantité locale</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.ProduitsRupture)
+            {
+                <tr class="table-danger">
+                    <td>@item.NomMagasin</td>
+                    <td>@item.NomProduit</td>
+                    <td>@item.QuantiteLocale</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<hr />
+
+<h2>Produits en surstock</h2>
+@if (!Model.ProduitsSurstock.Any())
+{
+    <div class="alert alert-info">
+        Personne ne stocke au-delà du seuil de surstock.
+    </div>
+}
+else
+{
+    <table class="table table-bordered table-sm">
+        <thead>
+            <tr>
+                <th>Magasin</th>
+                <th>Produit</th>
+                <th>Quantité locale</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.ProduitsSurstock)
+            {
+                <tr class="table-warning">
+                    <td>@item.NomMagasin</td>
+                    <td>@item.NomProduit</td>
+                    <td>@item.QuantiteLocale</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<hr />
+
+<h2>Tendances hebdomadaires</h2>
+
+<table class="table table-bordered table-striped table-sm">
+    <thead>
+        <tr>
+            <th>Date</th>
+            @foreach (var revenu in Model.RevenusParMagasin)
+            {
+                <th>@revenu.NomMagasin</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @for (int offset = 0; offset < 7; offset++)
+        {
+            var dateCible = semainePasse.AddDays(offset);
+            <tr>
+                <td>@dateCible.ToString("dd/MM/yyyy")</td>
+                @foreach (var revenu in Model.RevenusParMagasin)
+                {
+                    int magId = revenu.MagasinId;
+                    var ventesMag = Model.TendancesHebdomadairesParMagasin.ContainsKey(magId)
+                    ? Model.TendancesHebdomadairesParMagasin[magId]
+                    : new List<MagasinCentral.ViewModels.VentesQuotidiennes>();
+
+                    var vq = ventesMag.FirstOrDefault(x => x.Date == dateCible);
+                    decimal montant = vq?.MontantVentes ?? 0m;
+
+                    <td>@montant.ToString("C")</td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>

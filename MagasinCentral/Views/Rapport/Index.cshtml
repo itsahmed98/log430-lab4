@@ -1,0 +1,71 @@
+@model List<RapportDto>
+
+@{
+    ViewData["Title"] = "Rapport consolidé des ventes";
+}
+
+<h1 class="mt-4">Rapport consolidé des ventes</h1>
+
+@* Pour chaque magasin (et le stock central), on affiche :
+   - Nom du magasin
+   - Chiffre d’affaires total
+   - Top 3 des produits vendus
+   - Tableau des stocks restants *@
+
+@foreach (var rapport in Model)
+{
+    <section class="mb-5">
+        <h2>@rapport.NomMagasin</h2>
+        <p>
+            <strong>Chiffre d’affaires total : </strong>
+            @rapport.ChiffreAffairesTotal.ToString("C")
+        </p>
+
+        <h3>Top 3 des produits vendus</h3>
+        @if (rapport.TopProduits.Any())
+        {
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Quantité vendue</th>
+                        <th>Total ventes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var prod in rapport.TopProduits)
+                    {
+                        <tr>
+                            <td>@prod.NomProduit</td>
+                            <td>@prod.QuantiteVendue</td>
+                            <td>@prod.TotalVentes.ToString("C")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p><em>Aucune vente enregistrée pour le moment.</em></p>
+        }
+
+        <h3>Stocks restants</h3>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Quantité restante</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var stock in rapport.StocksRestants)
+                {
+                    <tr>
+                        <td>@stock.NomProduit</td>
+                        <td>@stock.QuantiteRestante</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </section>
+}

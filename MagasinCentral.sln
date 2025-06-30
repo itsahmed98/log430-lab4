@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36127.28 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagasinCentral", "MagasinCentral\MagasinCentral.csproj", "{B42A2BB1-A7AD-4689-B795-629B16FAE538}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagasinCentral.Tests", "MagasinCentral.Tests\MagasinCentral.Tests.csproj", "{5120D633-E62A-4D21-A080-D4CE05ECF0B3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B42A2BB1-A7AD-4689-B795-629B16FAE538}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B42A2BB1-A7AD-4689-B795-629B16FAE538}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B42A2BB1-A7AD-4689-B795-629B16FAE538}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B42A2BB1-A7AD-4689-B795-629B16FAE538}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5120D633-E62A-4D21-A080-D4CE05ECF0B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5120D633-E62A-4D21-A080-D4CE05ECF0B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5120D633-E62A-4D21-A080-D4CE05ECF0B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5120D633-E62A-4D21-A080-D4CE05ECF0B3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AE51EA9C-E063-433A-B6C6-3658B81076E2}
+	EndGlobalSection
+EndGlobal

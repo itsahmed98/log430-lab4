@@ -1,0 +1,25 @@
+@startuml "Process View - Génere un Rapport Consolidé"
+title Process View - Générer un Rapport Consolidé
+actor "Gestionnaire" as Gestionnaire
+
+participant "Browser" as Client
+participant "RapportController" as RC
+participant "RapportService" as RS
+participant "MagasinDbContext" as Db
+
+Gestionnaire -> Client : GET /Rapport
+Client -> RC : GET /Rapport
+RC -> RS : rapportConsolide =\nObtenirRapportConsolideAsync()
+
+
+== Charger les magasins ==
+RS -> Db : Magasins.Include(m => m.Ventes).\nThenInclude(v => v.Produit).\nInclude(m => m.StocksProduits).\nThenInclude(sp => sp.Produit).\nToListAsync()
+Db --> RS : List<Magasin> 
+
+== Charger le stock central ==
+RS -> Db : StocksCentraux.\nInclude(sc => sc.Produit).\nToListAsync()
+Db --> RS : List<StockCentral> 
+
+RS --> RC : List<RapportDto>
+RC --> Client : 200 OK + JSON
+@enduml

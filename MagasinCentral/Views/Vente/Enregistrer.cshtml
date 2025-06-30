@@ -1,0 +1,58 @@
+@model List<Produit>
+@{
+    var magasinId = (int)(ViewData["MagasinId"] ?? 0);
+    var magasins = (List<MagasinCentral.Models.Magasin>)ViewData["Magasins"];
+}
+
+<h1 class="mt-4">Nouvelle vente</h1>
+
+@if (magasinId == 0)
+{
+    <form asp-action="Enregistrer" method="get" class="form-inline mb-4">
+        <label for="magasinSelect" class="mr-2">Choisissez votre magasin :</label>
+        <select id="magasinSelect" name="magasinId" class="form-control form-control-sm mr-2" required>
+            <option value="">-- Sélectionner --</option>
+            @foreach (var m in magasins)
+            {
+                <option value="@m.MagasinId">@m.Nom (@m.Adresse)</option>
+            }
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Valider</button>
+    </form>
+}
+else
+{
+    <h2>Magasin : @magasins.First(m => m.MagasinId == magasinId).Nom</h2>
+    <form asp-action="Enregistrer" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="magasinId" value="@magasinId" />
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Prix</th>
+                    <th>Quantité</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            @Model[i].Nom
+                            <input type="hidden" name="produitId" value="@Model[i].ProduitId" />
+                        </td>
+                        <td>@Model[i].Prix.ToString("C")</td>
+                        <td>
+                            <input type="number" name="quantite" min="0" value="0" class="form-control form-control-sm" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <button type="submit" class="btn btn-success">Enregistrer</button>
+        <a asp-action="Enregistrer" class="btn btn-secondary ml-2">Changer de magasin</a>
+    </form>
+}

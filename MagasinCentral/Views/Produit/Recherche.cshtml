@@ -1,0 +1,42 @@
+@model List<Produit>
+@{
+    ViewData["Title"] = "Recherche de produits";
+    var terme = (string)(ViewData["Terme"] ?? "");
+}
+<h1>Recherche de produits</h1>
+<form method="get" asp-action="Recherche">
+    <div class="input-group mb-3">
+        <input type="text" name="produit" value="@terme" class="form-control" placeholder="ID, nom ou catégorie…" />
+        <div class="input-group-append">
+            <button class="btn btn-primary">Rechercher</button>
+        </div>
+    </div>
+</form>
+@if (!Model.Any())
+{
+    <p class="text-muted">Aucun résultat pour « @terme »</p>
+}
+else
+{
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Catégorie</th>
+                <th>Prix</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td>@p.ProduitId</td>
+                    <td>@p.Nom</td>
+                    <td>@p.Categorie</td>
+                    <td>@p.Prix.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+
+  # Base de données Postgres
+  db:
+    image: postgres:15
+    container_name: magasincentral-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: magasinuser
+      POSTGRES_PASSWORD: magasinpass
+      POSTGRES_DB: magasincentraldb
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U magasinuser"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  # Application .NET Core
+  app:
+    build:
+      context: .
+      dockerfile: MagasinCentral/Dockerfile
+    image: magasincentral-api:latest
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=magasincentraldb;Username=magasinuser;Password=magasinpass"
+    ports:
+      - "8181:80"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  db_data:

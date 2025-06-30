@@ -1,0 +1,42 @@
+@model List<Vente>
+<h1>Liste des ventes</h1>
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Magasin</th>
+            <th>Détails</th>
+            <th>Total</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var v in Model)
+        {
+            <tr>
+                <td>@v.VenteId</td>
+                <td>@v.Date.ToString("g")</td>
+                <td>@v.Magasin.Nom</td>
+                <td>
+                    <ul>
+                        @foreach (var l in v.Lignes)
+                        {
+                            <li>@l.Produit.Nom × @l.Quantite = @((l.Quantite * l.PrixUnitaire).ToString("C"))</li>
+                        }
+                    </ul>
+                </td>
+                <td>
+                    @(v.Lignes.Sum(l => l.Quantite * l.PrixUnitaire).ToString("C"))
+                </td>
+                <td>
+                    <form asp-action="Retour" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="venteId" value="@v.VenteId" />
+                        <button class="btn btn-sm btn-warning">Annuler</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

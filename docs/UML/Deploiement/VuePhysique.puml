@@ -1,0 +1,48 @@
+@startuml
+skinparam handwritten true
+top to bottom direction
+
+node "Hôte\n(Windows/macOS/Linux)" as Host {
+  rectangle "Couche Présentation" {
+    node "Client Browser" as Browser {
+      [Razor Pages\n(HTML/CSS/JS)] as RazorPages
+    }
+  }
+  
+  rectangle "Couche Métier" {
+    node "Docker Container : MagasinCentral" as metier {
+      component "Controllers" as Controllers
+      component "Services" as Services
+      component "MagasinCentral.Data.dll\n(EF Core & Models)" as DataLayer
+
+      note right of Controllers
+        gère les requêtes HTTP/HTTPS
+        et appelle les services métier:
+        PerformaceController
+        ProduitController
+        ...
+      end note
+
+      note right of Services
+        contient la logique métier:
+        - ProduitService
+        - RapportService
+        - ReapprovisionnementService
+        - ...
+      end note
+    }
+  }
+
+  rectangle "Couche Données" {
+    node "Docker Container : postgresql" as database {
+      database "Base de données" as DB
+    }
+  }
+
+  Browser --> Controllers : HTTP/HTTPS
+  Controllers --> Services : Utilise
+  metier --> database : TCP
+  Services --> DataLayer : Accède aux données
+}
+
+@enduml

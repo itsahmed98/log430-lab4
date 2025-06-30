@@ -1,0 +1,92 @@
+name: CI/CD .NET + Docker
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Lint / Format check
+        run: dotnet format --verify-no-changes
+        continue-on-error: true
+
+      - name: Run tests
+        run: dotnet test --configuration Release --no-build --verbosity normal
+
+  docker-build-and-push:
+    name: Build & Push Docker image
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -f MagasinCentral/Dockerfile -t magasincentral-api .
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Tag Docker image
+        run: docker tag magasincentral-api docker.io/${{ secrets.DOCKERHUB_USERNAME }}/magasincentral-api:latest
+
+      - name: Push Docker image
+        run: docker push docker.io/${{ secrets.DOCKERHUB_USERNAME }}/magasincentral-api:latest
+
+  deploy:
+    name: Deploy to VM via SSH
+    needs: docker-build-and-push
+    runs-on: self-hosted
+    steps:
+      - name: SSH & deploy to VM
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          password: ${{ secrets.VM_PASSWORD }}
+          port: 22
+          script: |
+            set -e
+
+            # clone once, then on every run reset to main
+            if [ ! -d ~/log430-laboratoire-03 ]; then
+              git clone https://github.com/itsahmed98/log430-lab3.git ~/log430-laboratoire-03
+            fi
+            cd ~/log430-laboratoire-03
+            git fetch --all
+            git reset --hard origin/main
+
+            # log into Docker Hub
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" \
+              | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+            # Supprimer les conteneurs problématiques
+            docker ps -aq --filter "name=magasincentral-db" | xargs -r docker rm -f
+            docker ps -aq --filter "ancestor=magasincentral-api" | xargs -r docker rm -f
+
+            # tear down old containers
+            docker-compose down --remove-orphans
+
+            # pull new images (if you push to Docker Hub)
+            docker-compose pull
+
+            # rebuild & start fresh
+            docker-compose up -d --build --remove-orphans

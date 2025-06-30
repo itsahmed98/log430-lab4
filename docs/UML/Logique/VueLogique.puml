@@ -1,0 +1,141 @@
+@startuml "Vue Logique - Magasin Central"
+title Vue Logique - Magasin Central
+top to bottom direction
+skinparam class {
+  BackgroundColor White
+  ArrowColor SeaGreen
+}
+
+package "MagasinCentral" {
+    Package "Models" as models{
+        class Produit {
+            +int ProduitId
+            +string Nom
+            +string Categorie
+            +decimal Prix
+            +string Description
+        }
+        class Magasin {
+            +int MagasinId
+            +string Nom
+            +string Adresse
+        }
+        class MagasinStockProduit {
+            +int MagasinId
+            +int ProduitId
+            +int Quantite
+        }
+        class StockCentral {
+            +int ProduitId
+            +int Quantite
+        }
+        class Vente {
+            +int VenteId
+            +DateTime Date
+            +int MagasinId
+            +int ProduitId
+            +int Quantite
+            +decimal PrixUnitaire
+        }
+        class DemandeReapprovisionnement {
+            +int DemandeId
+            +int MagasinId
+            +int ProduitId
+            +int QuantiteDemandee
+            +DateTime DateDemande
+            +string Statut
+        }
+    }
+
+    package "Controllers" as controllers{
+        class ProduitController {
+            +Index()
+            +Modifier(int produitId)
+            +Modifier(Produit produit)
+            +Recherche(string produit)
+        }
+        class RapportController {
+            +Index()
+
+        }
+        class TraiterDemandesController {
+            +Index()
+            +Traiter(int demandeId, bool approuver)
+        }
+        class PerformancesController {
+            Index()
+        }
+        class ReapprovisionnementController {
+            +Index(int magasinId)
+            +DemanderReapprovisionnement(int magasinId, int produitId, int quantite)
+            +DemandesReapprovisionnement()
+
+        }
+    }
+
+    package "Services" as services{
+        class ProduitService {
+            +GetAllProduitsAsync()
+            +GetProduitByIdAsync(int produitId)
+            +ModifierProduitAsync(Produit produit)
+            +RechercherProduitsAsync(string terme)
+        }
+        class RapportService {
+            +ObtenirRapportConsolideAsync()
+        }
+        class StockService {
+            +GetStockByMagasinId(int magasinId)
+        }
+        class PerformancesService {
+            +GetPerformances()
+        }
+        class ReapprovisionnementService {
+            +GetStocksAsync(int magasinId)
+            +CreerDemandeReapprovisionnementAsync(int magasinId, int produitId, int quantiteDemande)
+            +GetDemandesReapprovisionnementAsync()
+            +GetDemandesEnAttenteAsync()
+            +TraiterDemandeAsync(int demandeId, bool approuver)
+        }
+        class VenteService {
+            +CreerVenteAsync(int magasinId, List<(int produitId, int quantite)> lignes)
+            +AnnulerVenteAsync(int venteId)
+            +GetVentesAsync()
+        }
+    }
+
+    package "Api" as api {
+        class ProduitApiController {
+            +Produits()
+            +Produit(int produitId)
+            +Modifier([FromRoute] int produitId, [FromBody] Produit payload)
+        }
+        class RapportApiController {
+            +RapportConsolide()
+        }
+        class AuthApiController {
+            +Login([FromBody] LoginRequest request)
+            +Register([FromBody] RegisterRequest request)
+        }
+        class PerformancesApiController {
+            +GetPerformances()
+        }
+        class StockApiController {
+            +GetStockMagasin(int magasinId)
+        }
+    }
+}
+
+
+Magasin "1" -- "0..*" MagasinStockProduit : stocks
+Produit "1" -- "0..*" MagasinStockProduit
+Produit "1" -- "1" StockCentral
+Magasin "1" -- "0..*" Vente
+Produit "1" -- "0..*" Vente
+Magasin "1" -- "0..*" DemandeReapprovisionnement
+Produit "1" -- "0..*" DemandeReapprovisionnement
+
+controllers -> services : utilise
+services -> models : accède aux données
+api -> services : utilise
+
+@enduml

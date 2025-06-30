@@ -1,0 +1,43 @@
+@model List<Produit>
+
+@{
+    ViewData["Title"] = "Gestion des produits";
+}
+
+<h1 class="mt-4">Gestion des produits</h1>
+
+@if (TempData["Succès"] != null)
+{
+    <div class="alert alert-success">@TempData["Succès"]</div>
+}
+
+<table class="table table-bordered table-striped table-sm">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Catégorie</th>
+            <th>Prix</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.ProduitId</td>
+                <td>@p.Nom</td>
+                <td>@p.Categorie</td>
+                <td>@p.Prix.ToString("C")</td>
+                <td>@p.Description</td>
+                <td>
+                    <a asp-controller="Produit" asp-action="Modifier" asp-route-produitId="@p.ProduitId"
+                        class="btn btn-sm btn-primary">
+                        Modifier
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

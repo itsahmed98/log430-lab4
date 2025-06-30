@@ -1,0 +1,77 @@
+@model List<StockVue>
+@{
+    ViewData["Title"] = "Réapprovisionnement - Consultation des stocks";
+
+    // Si un magasinId existe déjà dans la ViewData (passé par le controller), on le récupère
+    var magasinId = (int)(ViewData["MagasinId"] ?? 0);
+}
+
+<h1 class="mt-4">Stocks du magasin @magasinId</h1>
+
+<form asp-controller="Reapprovisionnement" asp-action="Index" method="get" class="form-inline mb-3">
+    <label for="magasinSelect" class="mr-2">Sélectionnez votre magasin :</label>
+    <select id="magasinSelect" name="magasinId" class="form-control form-control-sm mr-2">
+        <option value="">-- Choisir --</option>
+        <option value="1" selected="@(magasinId == 1)">Magasin Centre-Ville (ID 1)</option>
+        <option value="2" selected="@(magasinId == 2)">Magasin Université (ID 2)</option>
+        <option value="3" selected="@(magasinId == 3)">Magasin Quartier Nord (ID 3)</option>
+        <option value="4" selected="@(magasinId == 4)">Magasin Sud-Ouest (ID 4)</option>
+    </select>
+    <button type="submit" class="btn btn-primary btn-sm">Afficher stocks</button>
+</form>
+
+@if (magasinId == 0)
+{
+    <div class="alert alert-warning">
+        Veuillez sélectionner un magasin pour consulter les stocks.
+    </div>
+}
+else
+{
+    @* Ici, on affiche la table des StockVue seulement si magasinId != 0 *@
+    @if (TempData["Succès"] != null)
+    {
+        <div class="alert alert-success">@TempData["Succès"]</div>
+    }
+    @if (TempData["Erreur"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Erreur"]</div>
+    }
+
+    <table class="table table-bordered table-striped table-sm">
+        <thead>
+            <tr>
+                <th>Produit</th>
+                <th>Stock local</th>
+                <th>Stock central</th>
+                <th>Demande de réapprovisionnement</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.NomProduit</td>
+                    <td>@item.QuantiteLocale</td>
+                    <td>@item.QuantiteCentral</td>
+                    <td>
+                        <form asp-controller="Reapprovisionnement" asp-action="DemanderReapprovisionnement" method="post"
+                            class="form-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="magasinId" value="@magasinId" />
+                            <input type="hidden" name="produitId" value="@item.ProduitId" />
+
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="quantite" min="1" max="@item.QuantiteCentral"
+                                    class="form-control form-control-sm" value="1" required />
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary btn-sm">Demander</button>
+                                </div>
+                            </div>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

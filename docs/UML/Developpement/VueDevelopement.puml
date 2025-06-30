@@ -1,0 +1,118 @@
+@startuml VueDéveloppement_MagasinCentral
+title Vue de Développement - Magasin Central
+!pragma layout smetana
+left to right direction
+
+skinparam component {
+  horizontalSpacing 40
+  verticalSpacing 30
+}
+skinparam package {
+  padding 20
+}
+
+package "Web MVC (Présentation)" as WebMVC <<Layer>> {
+  package "Views" as view <<component>> {
+    [ProduitView] <<Component>>
+      note right of [ProduitView]
+        . Index.csthml
+        . Modifier.csthml
+        . Rechercher.csthml
+      end note
+    [RapportView] <<Component>>
+      note right of [RapportView]
+        . Index.csthml
+      end note
+    [PerformancesView] <<Component>>
+      note right of [PerformancesView]
+        . Index.csthml
+      end note
+    [ReapprovisionnementView] <<Component>>
+      note right of [ReapprovisionnementView]
+        . Index.csthml
+        . DemandeRéappro.csthml
+      end note
+    [TraiterDemandesView] <<Component>>
+      note right of [TraiterDemandesView]
+        . Index.csthml
+      end note
+    [VenteView] <<Component>>
+      note right of [VenteView]
+        . Enregistrer.csthml
+        . Liste.csthml
+      end note
+  }
+
+  package "Controllers" as controller <<component>> {
+    [ProduitController] <<Component>>
+    [RapportController] <<Component>>
+    [PerformancesController] <<Component>>
+    [ReapprovisionnementController] <<Component>>
+    [TraiterDemandesController] <<Component>>
+    [VenteController] <<Component>>
+  }
+}
+
+package "MagasinCentral.Api" as API <<Layer>> {
+  [AuthController] <<Component>>
+  [PerformancesApiController] <<Component>>
+  [RapportApiController] <<Component>>
+  [ProduitApiController] <<Component>>
+  [StockApiController] <<Component>>
+}
+
+package "MagasinCentral.Services (Métier)" as Services <<Layer>> {
+  interface IProduitService
+  interface IRapportService
+  interface IPerformancesService
+  interface IReapprovisionnementService
+  interface IVenteService
+
+  [ProduitService] <<Component>>
+  [RapportService] <<Component>>
+  [PerformancesService] <<Component>>
+  [ReapprovisionnementService] <<Component>>
+  [VenteService] <<Component>>
+}
+
+package "MagasinCentral.Data (Persistence)" as Contexte <<Layer>> {
+  [MagasinDbContext] <<Component>>
+  [DataSeeder] <<Component>>
+}
+
+package "MagasinCentral.Models (Domain)" as Models <<Layer>> {
+  [DemandeReapprovisionnement] <<Entity>>
+  [Produit] <<Entity>>
+  [LigneVente] <<Entity>>
+  [Magasin] <<Entity>>
+  [MagasinStockProduit] <<Entity>>
+  [RapportDto] <<DTO>>
+  [StockCentral] <<Entity>>
+  [Vente] <<Entity>>
+}
+
+controller --> Services : <<use>>
+view -> controller : <<Requête Http>>
+
+[ProduitService] ..|> IProduitService : <<implémente>>
+[RapportService] ..|> IRapportService : <<implémente>>
+[PerformancesService] ..|> IPerformancesService : <<implémente>>
+[ReapprovisionnementService] ..|> IReapprovisionnementService : <<implémente>>
+[VenteService] ..|> IVenteService : <<implémente>>
+
+Services -> MagasinDbContext : <<Accède>>
+
+MagasinDbContext --> DemandeReapprovisionnement : <<mappe>>
+MagasinDbContext --> Produit : <<mappe>>
+MagasinDbContext --> LigneVente : <<mappe>>
+MagasinDbContext --> Magasin : <<mappe>>
+MagasinDbContext --> MagasinStockProduit : <<mappe>>
+MagasinDbContext --> StockCentral : <<mappe>>
+MagasinDbContext --> Vente : <<mappe>>
+
+DataSeeder --> MagasinDbContext : <<alimente>>
+
+API -> Services : <<utilise>>
+
+
+@enduml

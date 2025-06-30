@@ -1,0 +1,19 @@
+@startuml "Process View - Modifier un Produit"
+title Process View - Modifier un Produit
+actor "Responsable" as R
+
+participant "Browser" as Client
+participant "ProduitController" as PC
+participant "ProduitService" as PS
+participant "MagasinDbContext" as Db
+
+R -> Client : Click sur "Sauvegarder"
+Client -> PC : Post /Modifier/{Produit}
+PC -> PS : ModifierProduitAsync(produit)
+
+PS -> Db : Update(produit)
+
+Db --> PS
+PS --> PC
+PC --> Client : 200 OK "Produit modifié avec succès"
+@enduml

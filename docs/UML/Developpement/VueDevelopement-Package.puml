@@ -1,0 +1,45 @@
+@startuml VuePaquet_MagasinCentral
+title Vue de Paquet - Magasin Central
+top to bottom direction
+
+package "MagasinCentral.WebMVC" {
+  package Controllers {
+    class ProduitController
+    class RapportController
+    class PerformancesController
+    class ReapprovisionnementController
+    class TraiterDemandesController
+    class VenteController
+  }
+}
+
+package "MagasinCentral.Services" {
+  interface IProduitService
+  interface IRapportService
+  interface IPerformancesService
+  interface IReapprovisionnementService
+  interface IVenteService
+
+  class ProduitService
+  class RapportService
+  class PerformancesService
+  class ReapprovisionnementService
+  class VenteService
+}
+
+package "MagasinCentral.Data" {
+  class MagasinDbContext
+  class DataSeeder
+}
+
+package "MagasinCentral.Models" {
+  class DemandeReapprovisionnement
+  class Produit
+  class LigneVente
+  class Magasin
+  class MagasinStockProduit
+  class StockCentral
+  class Vente
+}
+
+@enduml

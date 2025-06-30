@@ -1,0 +1,19 @@
+@startuml "Process View - GetPerformancesApi"
+title Process View - Get Performances API
+actor "Responsable" as R
+
+participant "Browser" as Client
+participant "ProduitApiController" as PC
+participant "ProduitService" as PS
+participant "MagasinDbContext" as Db
+
+R -> Client : api/v1/performances
+Client -> PC : api/v1/performances
+PC -> PS : GetPerformances()
+
+PS -> Db : GetPerformances()
+
+Db --> PS
+PS --> PC
+PC --> Client : 200 OK
+@enduml
