@@ -66,7 +66,7 @@ jobs:
           script: |
             set -e
 
-            # clone once, then on every run reset to main
+            # clone once, then on every run reset to main.
             if [ ! -d ~/log430-laboratoire-03 ]; then
               git clone https://github.com/itsahmed98/log430-lab3.git ~/log430-laboratoire-03
             fi
