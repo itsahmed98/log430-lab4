@@ -1,109 +1,142 @@
-# LABORATOIRE 2 — LOG430 | MagasinCentral à 3-couches
+# LOG430 - Laboratoire 4 : Monitoring et Cache
 
-## Répo GitHub (public)
+Ce projet met en place une application .NET Core composée de plusieurs microservices (Magasin, Produits, Ventes, etc.) monitorée avec Prometheus, Grafana, et avec mise en cache locale (MemoryCache).
 
-- https://github.com/itsahmed98/log430-lab0
-- https://github.com/itsahmed98/log430-lab1
-- https://github.com/itsahmed98/log430-lab2-mvc
-
----
-
-## Brève description de l’application
-
-Ce projet est une application Web (.NET 8) qui étend le fonctionnement de plusieurs caisses d’un commerce. Cette application offre une gestion de plusieurs magasin à partir d'un magasin central
-
-L'application est monolithique et suit une architecture en couche 3-tier
-
----
-
-## Cas d'utilisation du système
-
-| Id  | Fonction                                                         |
-| --- | ---------------------------------------------------------------- |
-| UC1 | Générer un rapport consolidé des ventes                          |
-| UC2 | Consulter le stock central et déclencher un réapprovisionnement  |
-| UC3 | Visualiser les performances des magasins dans un tableau de bord |
-| UC4 | Mettre à jour les produits depuis la maison mère                 |
-| UC6 | Approvisionner un magasin depuis le centre logistique            |
-
----
-
-## Suite de tests
-
-Le projet contient un dossier `MagasinCentral.Tests` avec des tests unitaires. (Voir Structure du projet).
-
-### Pour les exécuter :
+## 📁 Cloner le projet
 
 ```bash
-cd MagasinCentral.Tests
-dotnet test
-
-```
-
-## Structure du projet
-
-```plaintext
-
-log430-lab2-mvc/
-├── MagasinCentral/
-│ ├── Program.cs
-│ ├── Models/
-│ ├── Data/
-│ ├── Services/
-│ └── Migrations/
-├── client.Tests/
-│ ├── ProduitServiceTests.cs
-│ ├── VenteServiceTests.cs
-│ └── RetourServiceTests.cs
-├── docs/
-│ ├── ADR/
-│ ├── UML/
-│ ├── BesoinsDuClient.md
-│ └── Cas-utilisations.md
-├── Dockerfile
-├── docker-compose.yml
-├── .github/
-│ └── workflows/
-│ └── ci.yml
-└── README.md
+git clone https://github.com/itsahmed98/log430-lab4.git
+cd log430-lab4
 ```
 
 ---
 
-## Étapes d’installation et d’exécution
+## ⚙️ Lancer l'application (mode production via Docker Compose)
 
-### 1. Cloner le dépôt et aller dans le fichier racine
+1. **Vérifiez que Docker est installé et en cours d'exécution.**
+2. **Lancer tous les services (app, base de données, Prometheus, Grafana, Redis, etc.)**
 
-    - git clone https://github.com/itsahmed98/log430-lab2-mvc.git
-    - cd log430-lab2-mvc
+```bash
+docker compose up --build
+```
 
-### 2. Lancer l'application avec docker compose
+Cela lancera les services suivants :
 
-    - docker compose up --build -d
-    L’application va démarrer une instance du WebApp + PostgreSQL
+- API de l’application (`app1`, `app2`, …)
+- PostgreSQL
+- Prometheus (monitoring)
+- Grafana (dashboard de visualisation)
+- Node Exporter (métriques systèmes)
+- Redis (optionnel si utilisé)
 
 ---
 
-## Image Docker Hub
+## 🔗 Accès aux interfaces
 
-Les images sont disponible ici: https://hub.docker.com/u/ahmedsherif98
+| Service            | URL                                      |
+| ------------------ | ---------------------------------------- |
+| Application        | http://localhost (port 80 exposé)        |
+| Prometheus         | http://localhost:9090                    |
+| Prometheus Targets | http://localhost:9090/targets            |
+| Grafana            | http://localhost:3000                    |
+| Grafana Login      | `admin` / `admin` (changer au 1er login) |
 
-pour récupèrer une imgage - docker pull ahmedsherif98/magasincentral-mvc:latest
+---
 
-## 🚀 CI/CD — Pipeline
+## 📈 Monitoring avec Prometheus & Grafana
 
-- https://github.com/itsahmed98/log430-lab2-mvc/actions
+### 1. Configuration de Prometheus
 
-Le pipeline CI/CD :
+Prometheus est configuré pour scrapper :
 
-1. Restaure les dépendances
-2. Vérifie la mise en forme du code (Linting)
-3. Lance les tests unitaires (avec xunit)
-4. Construit l’image Docker
-5. Publie l’image sur Docker Hub (avec un tag par defaut "latest")
+- L'application (`/metrics` via port 80)
+- `node-exporter` (`:9100`)
+
+Fichier `prometheus.yml` déjà configuré dans le repo.
+
+### 2. Configuration Grafana
+
+- Lancer Grafana et ajouter Prometheus comme source de données.
+- Importer les dashboards fournis (ou créer vos propres panels avec les requêtes PromQL).
+
+Exemples de requêtes utiles :
+
+```promql
+rate(http_requests_received_total[1m]) by (code)
+histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[1m]))
+```
+
+---
+
+## ⚖️ Test des Stratégies de Load Balancing
+
+Configuration dans `nginx.conf` (Docker) avec plusieurs stratégies :
+
+```nginx
+upstream magasin_api {
+    least_conn;
+    server app1:80 resolve;
+    server app2:80 resolve;
+    ...
+}
+```
+
+Pour tester une stratégie différente :
+
+1. Décommentez la section souhaitée (least_conn, round robin, ip_hash...)
+2. Rebuild avec `docker compose up --build`
+
+---
+
+## 🔁 Cache mémoire local
+
+Le cache est implémenté dans les services suivants :
+
+- RapportService
+- PerformancesService
+- ProduitService
+
+Le cache utilise `IMemoryCache` avec une expiration de 5 à 10 minutes selon le service. Cela permet de réduire la charge sur la base de données.
+
+---
+
+## 🧪 Lancer en local (hors Docker)
+
+1. S’assurer que PostgreSQL est en cours d’exécution localement.
+2. Modifier `appsettings.Development.json` avec votre chaîne de connexion locale.
+3. Lancer l’app depuis Visual Studio ou via la CLI :
+
+```bash
+dotnet run --project MagasinCentral
+```
+
+L’URL locale sera typiquement : `https://localhost:7230`
+
+⚠️ Pour le cache local, aucune configuration supplémentaire n’est nécessaire.
+
+---
+
+## 🧯 Test de tolérance aux pannes
+
+1. Lancer plusieurs instances (`app1`, `app2`, etc.)
+2. Arrêter une instance avec :
+
+```bash
+docker stop app1
+```
+
+3. Observer via Grafana que le service continue (le load balancer redirige vers les autres instances).
+
+---
+
+## 🧼 Nettoyage
+
+```bash
+docker compose down -v
+```
+
+---
 
 ## Auteur
 
-Ahmed Akram Sherif
-Étudiant au baccalauréat en génie logiciel
-Cours : LOG430 — Été 2025
+Projet réalisé par **Ahmed Sherif** dans le cadre du cours **LOG430** à l’ÉTS.

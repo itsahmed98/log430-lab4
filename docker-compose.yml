@@ -13,25 +13,86 @@ services:
     ports:
       - "5432:5432"
 
-  app:
-    build:
-      context: .
-      dockerfile: MagasinCentral/Dockerfile
+  app1:
     image: magasincentral-api:latest
+    container_name: app1
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ASPNETCORE_URLS: "http://+:80"
-      ConnectionStrings__DefaultConnection: "Host=magasincentral-db;Port=5432;Username=magasinuser;Password=magasinpass;Database=magasincentraldb"
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Username=magasinuser;Password=magasinpass;Database=magasincentraldb"
       JwtSettings__Issuer: "MagasinCentralAPI"
       JwtSettings__Audience: "MagasinCentralClient"
       JwtSettings__Secret: "MON_CLE_SECRETE_TRES_LONGUE_ET_COMPLEXE"
       JwtSettings__TokenValidityInMinutes: "60"
     depends_on:
       - db
-    ports:
-      - "8080:80"
-    restart: unless-stopped
+    expose:
+      - "80"
+
+  app2:
+    image: magasincentral-api:latest
+    container_name: app2
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_URLS: "http://+:80"
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Username=magasinuser;Password=magasinpass;Database=magasincentraldb"
+      JwtSettings__Issuer: "MagasinCentralAPI"
+      JwtSettings__Audience: "MagasinCentralClient"
+      JwtSettings__Secret: "MON_CLE_SECRETE_TRES_LONGUE_ET_COMPLEXE"
+      JwtSettings__TokenValidityInMinutes: "60"
+    depends_on:
+      - db
+    expose:
+      - "80"
   
+  app3:
+    image: magasincentral-api:latest
+    container_name: app3
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_URLS: "http://+:80"
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Username=magasinuser;Password=magasinpass;Database=magasincentraldb"
+      JwtSettings__Issuer: "MagasinCentralAPI"
+      JwtSettings__Audience: "MagasinCentralClient"
+      JwtSettings__Secret: "MON_CLE_SECRETE_TRES_LONGUE_ET_COMPLEXE"
+      JwtSettings__TokenValidityInMinutes: "60"
+    depends_on:
+      - db
+    expose:
+      - "80"
+
+  # app4:
+  #   image: magasincentral-api:latest
+  #   container_name: app4
+  #   environment:
+  #     ASPNETCORE_ENVIRONMENT: "Production"
+  #     ASPNETCORE_URLS: "http://+:80"
+  #     ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Username=magasinuser;Password=magasinpass;Database=magasincentraldb"
+  #     JwtSettings__Issuer: "MagasinCentralAPI"
+  #     JwtSettings__Audience: "MagasinCentralClient"
+  #     JwtSettings__Secret: "MON_CLE_SECRETE_TRES_LONGUE_ET_COMPLEXE"
+  #     JwtSettings__TokenValidityInMinutes: "60"
+  #   depends_on:
+  #     - db
+  #   expose:
+  #     - "80"
+
+  # app5:
+  #   image: magasincentral-api:latest
+  #   container_name: app5
+  #   environment:
+  #     ASPNETCORE_ENVIRONMENT: "Production"
+  #     ASPNETCORE_URLS: "http://+:80"
+  #     ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Username=magasinuser;Password=magasinpass;Database=magasincentraldb"
+  #     JwtSettings__Issuer: "MagasinCentralAPI"
+  #     JwtSettings__Audience: "MagasinCentralClient"
+  #     JwtSettings__Secret: "MON_CLE_SECRETE_TRES_LONGUE_ET_COMPLEXE"
+  #     JwtSettings__TokenValidityInMinutes: "60"
+  #   depends_on:
+  #     - db
+  #   expose:
+  #     - "80"
+
     # Prometheus pour les métriques
   prometheus:
     image: prom/prometheus:latest
@@ -43,7 +104,11 @@ services:
     ports:
       - "9090:9090"
     depends_on:
-      - app
+      - app1
+      - app2
+      - app3
+      # - app4
+      # - app5
 
   # Grafana dashboard
   grafana:
@@ -67,6 +132,20 @@ services:
     # expose le port 9100 en interne
     ports:
       - "9100:9100"
+
+  nginx:
+    image: nginx:stable
+    container_name: magasincentral-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app1
+      - app2
+      - app3
+      # - app4
+      # - app5
 
 volumes:
   db_data:

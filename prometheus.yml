@@ -5,9 +5,9 @@ scrape_configs:
   - job_name: "api"
     metrics_path: /metrics
     static_configs:
-      - targets: ["app:80"]
+      - targets: ["app1:80", "app2:80", "app3:80"]
 
   - job_name: "node-exporter"
-    metrics_path: "/metrics"
+    metrics_path: /metrics
     static_configs:
       - targets: ["node-exporter:9100"]
