@@ -2,6 +2,7 @@ using MagasinCentral.Data;
 using MagasinCentral.Models;
 using MagasinCentral.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace MagasinCentral.Tests.UnitTests.Services
 {
@@ -10,6 +11,7 @@ namespace MagasinCentral.Tests.UnitTests.Services
     /// </summary>
     public class PerformancesServiceTest
     {
+        IMemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
         private async Task<MagasinDbContext> CreateInMemoryContextAsync()
         {
             var options = new DbContextOptionsBuilder<MagasinDbContext>()
@@ -29,7 +31,7 @@ namespace MagasinCentral.Tests.UnitTests.Services
             MagasinDbContext? context = null;
 
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => new PerformancesService(context!));
+            Assert.Throws<ArgumentNullException>(() => new PerformancesService(context!, _memoryCache));
         }
     }
 }

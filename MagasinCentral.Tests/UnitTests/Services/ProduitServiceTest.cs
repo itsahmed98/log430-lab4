@@ -2,6 +2,7 @@ using MagasinCentral.Data;
 using MagasinCentral.Models;
 using MagasinCentral.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace MagasinCentral.Tests.UnitTests.Services
 { }
@@ -11,6 +12,7 @@ namespace MagasinCentral.Tests.UnitTests.Services
 /// </summary>
 public class ProduitServiceTest
 {
+    IMemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
     private async Task<MagasinDbContext> CreateInMemoryContextAsync()
     {
         var options = new DbContextOptionsBuilder<MagasinDbContext>()
@@ -30,7 +32,7 @@ public class ProduitServiceTest
         MagasinDbContext? context = null;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new ProduitService(context!));
+        Assert.Throws<ArgumentNullException>(() => new ProduitService(context!, _memoryCache));
     }
 
     [Fact]
@@ -38,7 +40,7 @@ public class ProduitServiceTest
     {
         // Arrange
         var context = await CreateInMemoryContextAsync();
-        var service = new ProduitService(context);
+        var service = new ProduitService(context, _memoryCache);
 
         // Act
         var produits = await service.GetAllProduitsAsync();
@@ -52,7 +54,7 @@ public class ProduitServiceTest
     {
         // Arrange
         var context = await CreateInMemoryContextAsync();
-        var service = new ProduitService(context);
+        var service = new ProduitService(context, _memoryCache);
 
         // Act
         var result = await service.GetProduitByIdAsync(999); // ID that does not exist

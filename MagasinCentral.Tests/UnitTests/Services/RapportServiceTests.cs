@@ -2,6 +2,7 @@ using MagasinCentral.Data;
 using MagasinCentral.Models;
 using MagasinCentral.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace MagasinCentral.Tests.UnitTests.Services
 {
@@ -10,6 +11,7 @@ namespace MagasinCentral.Tests.UnitTests.Services
     /// </summary>
     public class RapportServiceTests
     {
+        private readonly IMemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
         /// <summary>
         /// Construit un DbContext InMemory fraîchement seedé.
         /// </summary>
@@ -33,7 +35,7 @@ namespace MagasinCentral.Tests.UnitTests.Services
         {
             // Arrange
             var context = await CreateInMemoryContextAsync();
-            var service = new RapportService(context);
+            var service = new RapportService(context, _memoryCache);
 
             // Act
             var listeRapports = await service.ObtenirRapportConsolideAsync();
@@ -51,7 +53,7 @@ namespace MagasinCentral.Tests.UnitTests.Services
         {
             // Arrange
             var context = await CreateInMemoryContextAsync();
-            var service = new RapportService(context);
+            var service = new RapportService(context, _memoryCache);
 
             // Act
             var listeRapports = await service.ObtenirRapportConsolideAsync();
@@ -70,7 +72,7 @@ namespace MagasinCentral.Tests.UnitTests.Services
         {
             // Arrange
             var context = await CreateInMemoryContextAsync();
-            var service = new RapportService(context);
+            var service = new RapportService(context, _memoryCache);
 
             // Act
             var listeRapports = await service.ObtenirRapportConsolideAsync();
