@@ -9,7 +9,7 @@ namespace MagasinCentral.Api.Controllers
     /// </summary>
     [ApiController]
     [Route("api/v1/stocks")]
-    [Authorize]
+    //[Authorize]
     public class StockController : ControllerBase
     {
         private readonly IStockService _stockService;

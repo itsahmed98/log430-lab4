@@ -7,7 +7,7 @@ namespace MagasinCentral.Api.Controllers
 {
     [ApiController]
     [Route("api/v1/rapport")]
-    [Authorize]
+    //[Authorize]
     public class RapportController : ControllerBase
     {
         private readonly ILogger<RapportController> _logger;

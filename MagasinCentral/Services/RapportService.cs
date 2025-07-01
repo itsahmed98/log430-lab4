@@ -1,9 +1,12 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using MagasinCentral.Data;
 using MagasinCentral.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace MagasinCentral.Services
 {
@@ -13,19 +16,27 @@ namespace MagasinCentral.Services
     public class RapportService : IRapportService
     {
         private readonly MagasinDbContext _contexte;
+        private readonly IMemoryCache _cache;
 
         /// <summary>
         /// Constructeur de <see cref="MagasinDbContext"/>.
         /// </summary>
         /// <param name="contexte">Contexte EF Core.</param>
-        public RapportService(MagasinDbContext contexte)
+        public RapportService(MagasinDbContext context, IMemoryCache cache)
         {
-            _contexte = contexte;
+            _contexte = context;
+            _cache = cache;
         }
 
         /// <inheritdoc />
         public async Task<List<RapportDto>> ObtenirRapportConsolideAsync()
         {
+            var cacheKey = "rapport_consolide";
+            if (_cache.TryGetValue(cacheKey, out List<RapportDto> rapports))
+            {
+                return rapports;
+            }
+
             // Charger tous les magasins, leurs ventes et les lignes de ventes + produits
             var listeMagasins = await _contexte.Magasins
                 .Include(m => m.Ventes)
@@ -35,7 +46,7 @@ namespace MagasinCentral.Services
                     .ThenInclude(sp => sp.Produit)
                 .ToListAsync();
 
-            var rapports = new List<RapportDto>();
+            rapports = new List<RapportDto>();
 
             foreach (var magasin in listeMagasins)
             {
@@ -94,6 +105,10 @@ namespace MagasinCentral.Services
                     .ToList()
             });
 
+            var cacheOptions = new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
+
+            _cache.Set(cacheKey, rapports, cacheOptions);
             return rapports;
         }
     }

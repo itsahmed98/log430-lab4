@@ -2,9 +2,12 @@ using MagasinCentral.Data;
 using MagasinCentral.Models;
 using MagasinCentral.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MagasinCentral.Services
@@ -15,25 +18,26 @@ namespace MagasinCentral.Services
     public class PerformancesService : IPerformancesService
     {
         private readonly MagasinDbContext _contexte;
-        /// <summary>
-        ///     Seuil de surstock local.
-        /// </summary>
+        private readonly IMemoryCache _cache;
         private const int seuilSurstock = 100;
 
-        public PerformancesService(MagasinDbContext contexte)
+        public PerformancesService(MagasinDbContext contexte, IMemoryCache cache)
         {
             _contexte = contexte ?? throw new ArgumentNullException(nameof(contexte));
+            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
         public async Task<PerformancesViewModel> GetPerformances()
         {
+            var cacheKey = "performances";
+
+            if (_cache.TryGetValue(cacheKey, out PerformancesViewModel model))
+            {
+                return model;
+            }
+
             var viewModel = new PerformancesViewModel();
 
-            /*
-            
-                Calculer les chifres d'affaires par magasin.
-
-            */
             var magasins = await _contexte.Magasins
                 .AsNoTracking()
                 .ToListAsync();
@@ -50,8 +54,7 @@ namespace MagasinCentral.Services
 
             foreach (var magasin in magasins)
             {
-                var infoVente = ventesParMagasin
-                    .FirstOrDefault(x => x.MagasinId == magasin.MagasinId);
+                var infoVente = ventesParMagasin.FirstOrDefault(x => x.MagasinId == magasin.MagasinId);
 
                 viewModel.RevenusParMagasin.Add(new RevenuMagasin
                 {
@@ -61,9 +64,6 @@ namespace MagasinCentral.Services
                 });
             }
 
-            /*
-                Récupérer les produits en rupture de stock.
-            */
             var ruptures = await _contexte.MagasinStocksProduits
                 .AsNoTracking()
                 .Where(ms => ms.Quantite == 0)
@@ -79,13 +79,10 @@ namespace MagasinCentral.Services
                     NomMagasin = stock.Magasin.Nom,
                     ProduitId = stock.ProduitId,
                     NomProduit = stock.Produit.Nom,
-                    QuantiteLocale = stock.Quantite // = 0
+                    QuantiteLocale = stock.Quantite
                 });
             }
 
-            /*
-                Récupérer les produits en surstock local.
-            */
             var surstocks = await _contexte.MagasinStocksProduits
                 .AsNoTracking()
                 .Where(ms => ms.Quantite > seuilSurstock)
@@ -105,18 +102,13 @@ namespace MagasinCentral.Services
                 });
             }
 
-            /*
-                Récupérer les tendances hebdomadaires des ventes par magasin.
-            */
             DateTime aujourdHui = DateTime.UtcNow.Date;
             DateTime semainePasse = aujourdHui.AddDays(-6);
 
             var ventesDerniereSemaine = await _contexte.LignesVente
                 .AsNoTracking()
                 .Include(l => l.Vente)
-                .Where(l =>
-                    l.Vente.Date >= semainePasse &&
-                    l.Vente.Date < aujourdHui.AddDays(1))
+                .Where(l => l.Vente.Date >= semainePasse && l.Vente.Date < aujourdHui.AddDays(1))
                 .ToListAsync();
 
             var regroupement = ventesDerniereSemaine
@@ -133,7 +125,6 @@ namespace MagasinCentral.Services
                 })
                 .ToList();
 
-
             foreach (var magasin in magasins)
             {
                 var listeVentesJournalières = new List<VentesQuotidiennes>();
@@ -142,8 +133,7 @@ namespace MagasinCentral.Services
                 {
                     var dateCible = semainePasse.AddDays(offset);
                     var element = regroupement
-                        .FirstOrDefault(x => x.MagasinId == magasin.MagasinId
-                                          && x.Jour == dateCible);
+                        .FirstOrDefault(x => x.MagasinId == magasin.MagasinId && x.Jour == dateCible);
 
                     decimal montant = element?.MontantTotal ?? 0m;
 
@@ -158,6 +148,9 @@ namespace MagasinCentral.Services
                     magasin.MagasinId,
                     listeVentesJournalières);
             }
+
+            var options = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
+            _cache.Set(cacheKey, viewModel, options);
 
             return viewModel;
         }

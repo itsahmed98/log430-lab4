@@ -9,7 +9,7 @@ namespace MagasinCentral.Api.Controllers
     /// </summary>
     [ApiController]
     [Route("api/v1/performances")]
-    [Authorize]
+    //[Authorize]
     public class PerformancesController : ControllerBase
     {
         private readonly ILogger<PerformancesController> _logger;

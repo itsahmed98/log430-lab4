@@ -7,7 +7,7 @@ namespace MagasinCentral.Api.Controllers
 {
     [ApiController]
     [Route("api/v1/produits")]
-    [Authorize]
+    //[Authorize]
     public class ProduitController : ControllerBase
     {
         private readonly IProduitService _produitService;

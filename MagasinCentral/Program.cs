@@ -6,10 +6,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Prometheus;
+using Serilog;
+using Serilog.Formatting.Json;
 using System.Text;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Prometheus
+builder.Services.AddMetricServer(options => { });
 
 var jwtSettingsSection = builder.Configuration.GetSection("JwtSettings");
 builder.Services.Configure<JwtSettings>(jwtSettingsSection);
@@ -18,6 +24,8 @@ var jwtSettings = jwtSettingsSection.Get<JwtSettings>();
 // Configuration EF Core
 builder.Services.AddDbContext<MagasinDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddMemoryCache();
 
 // Services m�tiers
 builder.Services.AddScoped<IRapportService, RapportService>();
@@ -115,6 +123,10 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+//app.UseSerilogRequestLogging();
+app.UseMetricServer(); // Expose /metrics endpoint
+app.UseHttpMetrics(); // Instrument HTTP requests
 
 // Migration de la base de donn�es
 using (var scope = app.Services.CreateScope())

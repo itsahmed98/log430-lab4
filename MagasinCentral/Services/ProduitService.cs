@@ -1,6 +1,9 @@
 using MagasinCentral.Data;
 using MagasinCentral.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using System.Text.Json;
 
 namespace MagasinCentral.Services
 {
@@ -10,10 +13,12 @@ namespace MagasinCentral.Services
     public class ProduitService : IProduitService
     {
         private readonly MagasinDbContext _contexte;
+        private readonly IMemoryCache _cache;
 
-        public ProduitService(MagasinDbContext contexte)
+        public ProduitService(MagasinDbContext contexte, IMemoryCache cache)
         {
             _contexte = contexte ?? throw new ArgumentNullException(nameof(contexte));
+            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
         /// <inheritdoc />
@@ -27,8 +32,22 @@ namespace MagasinCentral.Services
         /// <inheritdoc />
         public async Task<Produit?> GetProduitByIdAsync(int produitId)
         {
-            return await _contexte.Produits
-                .FirstOrDefaultAsync(p => p.ProduitId == produitId);
+            string cacheKey = $"produit_{produitId}";
+
+            if (_cache.TryGetValue(cacheKey, out Produit? produit))
+            {
+                return produit;
+            }
+
+            produit = await _contexte.Produits.FirstOrDefaultAsync(p => p.ProduitId == produitId);
+
+            if (produit != null)
+            {
+                var options = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(10));
+                _cache.Set(cacheKey, produit, options);
+            }
+
+            return produit;
         }
 
         /// <inheritdoc />
